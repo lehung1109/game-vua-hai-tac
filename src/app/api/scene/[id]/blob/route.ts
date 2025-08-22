@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { list } from "@vercel/blob";
+import { listAssets } from "@/services/scene/index.service";
 
 /**
  * GET /api/scene/[id]/blob
@@ -7,18 +7,12 @@ import { list } from "@vercel/blob";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  // check prefix
-  const prefix = decodeURIComponent(params.id).replace(/^\/+|\/+$/g, "") + "/";
-
-  // call list request
-  const { blobs } = await list({ prefix });
+  const { id } = await params;
 
   // normalize data
-  const items = blobs.map((blob) => ({
-    url: blob.url,
-  }));
+  const data = await listAssets(id);
 
-  return Response.json({ prefix, count: items.length, items });
+  return Response.json(data);
 }

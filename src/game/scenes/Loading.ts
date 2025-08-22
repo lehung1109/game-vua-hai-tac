@@ -1,22 +1,44 @@
+import { fetchWithProgress } from "@/utils/network";
 import { Scene } from "phaser";
 
 export class Loading extends Scene {
+  private name?: string;
+  private progressText!: Phaser.GameObjects.Text;
+
   constructor() {
     super("Loading");
+
+    this.name = "loading";
   }
 
-  preload() {
-    console.log("preload");
-    this.load.setBaseURL(
-      "https://qqvwjajuohipjesi.public.blob.vercel-storage.com/scenes/loading/"
+  async create() {
+    const { width, height } = this.scale;
+
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 1);
+
+    this.progressText = this.add
+      .text(width / 2, height / 2, "Initializing...0%", {
+        fontSize: "32px",
+        color: "#fff",
+        align: "center",
+      })
+      .setOrigin(0.5, 0.5);
+
+    // call api to get assets and load them
+    const data = await fetchWithProgress(
+      `/api/scene/${this.name}/blob`,
+      {
+        method: "GET",
+      },
+      this.updateProgress.bind(this)
     );
-    this.load.image("xa_thu_img", "1_xa_thu_img.png");
 
-    // this.load.setBaseURL("/");
-    // this.load.image("background", "assets/bg.png");
+    console.log(data);
+
+    // this.scene.start("SelectCharacter");
   }
 
-  create() {
-    this.scene.start("SelectCharacter");
+  updateProgress(percent: number) {
+    this.progressText.setText(`Initializing... ${Math.round(percent * 100)}%`);
   }
 }

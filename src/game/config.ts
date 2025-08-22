@@ -4,9 +4,12 @@ import { AUTO } from "phaser";
 
 export const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
-  width: 1024,
-  height: 768,
+  width: "100%",
+  height: "100%",
   parent: "game-container",
-  backgroundColor: "#028af8",
+  backgroundColor: "#000",
   scene: [Loading, SelectCharacter],
+  scale: {
+    mode: Phaser.Scale.FIT,
+  },
 };
