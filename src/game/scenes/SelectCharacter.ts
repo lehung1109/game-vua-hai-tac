@@ -1,23 +1,223 @@
+import { GetSceneBlobResponse } from "@/app/api/scene/[id]/blob/route";
 import { Scene } from "phaser";
 
 export class SelectCharacter extends Scene {
+  currentText: string;
+  inputName?: Phaser.GameObjects.Image;
+  inputText?: Phaser.GameObjects.Text;
+  caretPadding: number;
+  caret?: Phaser.GameObjects.Text;
+  caretAnimation?: Phaser.Tweens.Tween;
+  inputKeydownEvent?: Phaser.Input.Keyboard.KeyboardPlugin;
+  inputBlurEvent?: Phaser.Input.InputPlugin;
+  inputKeydownCallbackBind?: (event: KeyboardEvent) => void;
+  blurInputCallbackBind?: (
+    pointer: Phaser.Input.Pointer,
+    targets: Phaser.GameObjects.GameObject[]
+  ) => void;
+
   constructor() {
     super("SelectCharacter");
+    this.currentText = "";
+    this.caretPadding = 2;
+  }
+
+  private assets?: GetSceneBlobResponse;
+
+  init(data: { assets: GetSceneBlobResponse }) {
+    this.assets = data.assets;
   }
 
   preload() {
-    // this.load.image("background", "assets/bg.png");
+    // load all url in assets with name is filename in url
+    this.assets?.items.forEach((item) => {
+      const url = new URL(item.url);
+      const filename = url.pathname.split("/").pop();
+
+      if (filename) {
+        this.load.image(filename, item.url);
+      } else {
+        console.error("No filename found in url", item.url);
+      }
+    });
   }
 
   create() {
     const { width, height } = this.scale;
 
-    this.add
-      .text(width / 2, height / 2, "Select Character", {
-        fontSize: "32px",
-        color: "#fff",
-        align: "center",
-      })
+    const bg = this.add
+      .image(width / 2, height / 2, "17_createRole_bg.jpg")
       .setOrigin(0.5, 0.5);
+
+    // make sure height of bg is 100%
+    bg.setScale(height / bg.height);
+    bg.setX(width / 2);
+
+    // set input name
+    this.inputName = this.add
+      .image(0, 0, "25_txt_name_input_bg.png")
+      .setOrigin(0.5, 0.5);
+
+    this.inputName.displayWidth = bg.displayWidth * 0.2;
+    this.inputName.displayHeight = bg.displayHeight * 0.05;
+
+    this.inputName.setX(width / 2);
+    this.inputName.setY(bg.displayHeight * 0.81);
+
+    this.createInteractiveForInput();
+  }
+
+  createInteractiveForInput() {
+    this.inputName?.setInteractive();
+    this.inputName?.on("pointerdown", () => {
+      this.createInputTextIfNotExists();
+      this.createCaretIfNotExists();
+      this.listenForInput();
+      this.listenForBlur();
+    });
+  }
+
+  listenForBlur() {
+    if (!this.inputName) {
+      console.error("Input name not found");
+      return;
+    }
+
+    if (!this.inputBlurEvent) {
+      this.blurInputCallbackBind =
+        this.blurInputCallbackBind || this.blurInputCallback.bind(this);
+      this.inputBlurEvent = this.input.on(
+        "pointerdown",
+        this.blurInputCallbackBind
+      );
+    }
+  }
+
+  blurInputCallback(
+    pointer: Phaser.Input.Pointer,
+    targets: Phaser.GameObjects.GameObject[]
+  ) {
+    if (
+      this.inputName &&
+      !targets.includes(this.inputName) &&
+      this.inputText &&
+      !targets.includes(this.inputText)
+    ) {
+      console.log("blurInputCallback");
+      console.log(targets);
+
+      // stop caret animation
+      this.caretAnimation?.pause();
+      this.caret?.setVisible(false);
+
+      // remove some event listener
+      this.input.keyboard?.off("keydown", this.inputKeydownCallbackBind);
+      this.input.off("pointerdown", this.blurInputCallbackBind);
+      this.inputKeydownEvent = undefined;
+      this.inputBlurEvent = undefined;
+    }
+  }
+
+  listenForInput() {
+    if (!this.inputKeydownEvent) {
+      this.inputKeydownCallbackBind =
+        this.inputKeydownCallbackBind || this.inputKeydownCallback.bind(this);
+      this.inputKeydownEvent = this.input.keyboard?.on(
+        "keydown",
+        this.inputKeydownCallbackBind
+      );
+    }
+  }
+
+  inputKeydownCallback(event: KeyboardEvent) {
+    console.log("inputKeydownCallback");
+
+    if (event.key === "Backspace") {
+      this.currentText = this.currentText.slice(0, -1);
+    } else if (this.currentText.length >= 20) {
+      this.errorInput("Max length is 20");
+    } else if (event.key.length === 1 && /^[a-zA-Z]$/.test(event.key)) {
+      this.currentText += event.key;
+    } else {
+      this.errorInput("Only allow input character a-z, A-Z");
+    }
+
+    // set text for input
+    this.inputText?.setText(this.currentText);
+    this.updateCaretPosition();
+  }
+
+  errorInput(message: string) {
+    alert(message);
+  }
+
+  createInputTextIfNotExists() {
+    if (!this.inputName) {
+      console.error("Input name not found");
+      return;
+    }
+
+    if (!this.inputText) {
+      this.inputText = this.add
+        .text(this.inputName.x, this.inputName.y, this.currentText, {
+          fontSize: "24px",
+          color: "#fff",
+        })
+        .setOrigin(0.5, 0.5);
+      this.inputText.setInteractive();
+      this.inputText.on("pointerdown", () => {
+        // trigger input name pointer down
+        this.inputName?.emit("pointerdown", this.inputText);
+      });
+    }
+  }
+
+  createCaretIfNotExists() {
+    if (!this.inputText) {
+      console.error("Input text not found");
+      return;
+    }
+
+    if (!this.caret) {
+      this.caret = this.add
+        .text(
+          this.inputText?.x + this.inputText?.width / 2 + this.caretPadding,
+          this.inputText?.y,
+          "|",
+          {
+            fontSize: "24px",
+            color: "#fff",
+          }
+        )
+        .setOrigin(0.5, 0.5);
+    } else {
+      this.caret.setVisible(true);
+      this.updateCaretPosition();
+    }
+
+    // animation to toggle caret
+    if (!this.caretAnimation) {
+      this.caretAnimation = this.tweens.add({
+        targets: this.caret,
+        alpha: 0,
+        duration: 500,
+        ease: "Power2",
+        repeat: -1,
+        yoyo: true,
+      });
+    } else {
+      this.caretAnimation.restart();
+    }
+  }
+
+  updateCaretPosition() {
+    if (!this.inputText) {
+      console.error("Input text not found");
+      return;
+    }
+
+    this.caret?.setX(
+      this.inputText.x + this.inputText.width / 2 + this.caretPadding
+    );
   }
 }

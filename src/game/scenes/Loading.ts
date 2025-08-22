@@ -1,3 +1,4 @@
+import { GetSceneBlobResponse } from "@/app/api/scene/[id]/blob/route";
 import { fetchWithProgress } from "@/utils/network";
 import { Scene } from "phaser";
 
@@ -26,15 +27,17 @@ export class Loading extends Scene {
       .setOrigin(0.5, 0.5);
 
     // call api to get assets and load them
-    fetchWithProgress(
+    fetchWithProgress<GetSceneBlobResponse>(
       `/api/scene/${this.name}/blob`,
       {
         method: "GET",
       },
       this.updateProgress.bind(this)
     )
-      .then(() => {
-        this.scene.start("SelectCharacter");
+      .then((data) => {
+        this.scene.start("SelectCharacter", {
+          assets: data,
+        });
       })
       .catch((err) => {
         console.error(err);
