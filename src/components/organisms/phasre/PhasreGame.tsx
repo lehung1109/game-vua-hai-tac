@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import StartGame from "@game/main";
 import { EventBus } from "@game/EventBus";
 
@@ -12,7 +12,7 @@ export interface IRefPhaserGame {
 const PhaserGame = () => {
   const game = useRef<Phaser.Game | null>(null!);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (game.current === null) {
       game.current = StartGame("game-container");
     }

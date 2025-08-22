@@ -1,4 +1,5 @@
-import { Boot } from "./scenes/Boot";
+import { Loading } from "./scenes/Loading";
+import { SelectCharacter } from "./scenes/SelectCharacter";
 import { AUTO } from "phaser";
 
 export const config: Phaser.Types.Core.GameConfig = {
@@ -7,5 +8,5 @@ export const config: Phaser.Types.Core.GameConfig = {
   height: 768,
   parent: "game-container",
   backgroundColor: "#028af8",
-  scene: [Boot],
+  scene: [Loading, SelectCharacter],
 };
