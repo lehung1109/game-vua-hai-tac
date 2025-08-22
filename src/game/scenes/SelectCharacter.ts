@@ -15,6 +15,8 @@ export class SelectCharacter extends Scene {
     pointer: Phaser.Input.Pointer,
     targets: Phaser.GameObjects.GameObject[]
   ) => void;
+  buttonEnterGame?: Phaser.GameObjects.Sprite;
+  bgObject?: Phaser.GameObjects.Image;
 
   constructor() {
     super("SelectCharacter");
@@ -34,7 +36,12 @@ export class SelectCharacter extends Scene {
       const url = new URL(item.url);
       const filename = url.pathname.split("/").pop();
 
-      if (filename) {
+      if (filename === "21_btn_enterGame.png") {
+        this.load.spritesheet(filename, item.url, {
+          frameWidth: 210,
+          frameHeight: 66,
+        });
+      } else if (filename) {
         this.load.image(filename, item.url);
       } else {
         console.error("No filename found in url", item.url);
@@ -45,26 +52,63 @@ export class SelectCharacter extends Scene {
   create() {
     const { width, height } = this.scale;
 
-    const bg = this.add
+    this.bgObject = this.add
       .image(width / 2, height / 2, "17_createRole_bg.jpg")
       .setOrigin(0.5, 0.5);
 
     // make sure height of bg is 100%
-    bg.setScale(height / bg.height);
-    bg.setX(width / 2);
+    this.bgObject.setScale(height / this.bgObject.height);
+    this.bgObject.setX(width / 2);
 
     // set input name
     this.inputName = this.add
       .image(0, 0, "25_txt_name_input_bg.png")
       .setOrigin(0.5, 0.5);
 
-    this.inputName.displayWidth = bg.displayWidth * 0.2;
-    this.inputName.displayHeight = bg.displayHeight * 0.05;
+    this.inputName.displayWidth = this.bgObject.displayWidth * 0.2;
+    this.inputName.displayHeight = this.bgObject.displayHeight * 0.05;
 
     this.inputName.setX(width / 2);
-    this.inputName.setY(bg.displayHeight * 0.81);
+    this.inputName.setY(this.bgObject.displayHeight * 0.81);
+
+    this.inputName.on("pointerover", () => {
+      this.input.setDefaultCursor("text");
+    });
+
+    this.inputName.on("pointerout", () => {
+      this.input.setDefaultCursor("default");
+    });
 
     this.createInteractiveForInput();
+    this.createEnterGameButton();
+  }
+
+  createEnterGameButton() {
+    if (!this.bgObject) {
+      console.error("Background object not found");
+      return;
+    }
+
+    this.buttonEnterGame = this.add
+      .sprite(0, 0, "21_btn_enterGame.png", 2)
+      .setOrigin(0.5, 0.5)
+      .setInteractive({ useHandCursor: true });
+
+    this.buttonEnterGame.setScale((this.bgObject.displayHeight * 0.08) / 66);
+    this.buttonEnterGame.setX(this.scale.width / 2);
+    this.buttonEnterGame.setY(this.bgObject.displayHeight * 0.9);
+
+    // hover event
+    this.buttonEnterGame.on("pointerover", () => {
+      if (this.currentText.length > 0) {
+        this.buttonEnterGame?.setFrame(1);
+      }
+    });
+
+    // pointer out event
+    this.buttonEnterGame.on("pointerout", () => {
+      this.updateFrameForEnterGameButton();
+    });
   }
 
   createInteractiveForInput() {
@@ -103,9 +147,6 @@ export class SelectCharacter extends Scene {
       this.inputText &&
       !targets.includes(this.inputText)
     ) {
-      console.log("blurInputCallback");
-      console.log(targets);
-
       // stop caret animation
       this.caretAnimation?.pause();
       this.caret?.setVisible(false);
@@ -130,21 +171,27 @@ export class SelectCharacter extends Scene {
   }
 
   inputKeydownCallback(event: KeyboardEvent) {
-    console.log("inputKeydownCallback");
-
     if (event.key === "Backspace") {
       this.currentText = this.currentText.slice(0, -1);
     } else if (this.currentText.length >= 20) {
       this.errorInput("Max length is 20");
-    } else if (event.key.length === 1 && /^[a-zA-Z]$/.test(event.key)) {
+    } else if (event.key.length === 1 || event.key.length === 2) {
       this.currentText += event.key;
-    } else {
-      this.errorInput("Only allow input character a-z, A-Z");
     }
 
     // set text for input
     this.inputText?.setText(this.currentText);
     this.updateCaretPosition();
+
+    this.updateFrameForEnterGameButton();
+  }
+
+  updateFrameForEnterGameButton() {
+    if (this.currentText.length > 0) {
+      this.buttonEnterGame?.setFrame(0);
+    } else {
+      this.buttonEnterGame?.setFrame(2);
+    }
   }
 
   errorInput(message: string) {
