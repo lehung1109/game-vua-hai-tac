@@ -3,7 +3,8 @@ import { Scene } from "phaser";
 
 export class Loading extends Scene {
   private name?: string;
-  private progressText!: Phaser.GameObjects.Text;
+  private progressText?: Phaser.GameObjects.Text;
+  private progressPercent = 0;
 
   constructor() {
     super("Loading");
@@ -11,7 +12,7 @@ export class Loading extends Scene {
     this.name = "loading";
   }
 
-  async create() {
+  create() {
     const { width, height } = this.scale;
 
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 1);
@@ -25,20 +26,28 @@ export class Loading extends Scene {
       .setOrigin(0.5, 0.5);
 
     // call api to get assets and load them
-    const data = await fetchWithProgress(
+    fetchWithProgress(
       `/api/scene/${this.name}/blob`,
       {
         method: "GET",
       },
       this.updateProgress.bind(this)
-    );
-
-    console.log(data);
-
-    // this.scene.start("SelectCharacter");
+    )
+      .then(() => {
+        this.scene.start("SelectCharacter");
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   updateProgress(percent: number) {
-    this.progressText.setText(`Initializing... ${Math.round(percent * 100)}%`);
+    this.progressPercent = percent;
+  }
+
+  update() {
+    this.progressText?.setText(
+      `Initializing... ${Math.round(this.progressPercent * 100)}%`
+    );
   }
 }

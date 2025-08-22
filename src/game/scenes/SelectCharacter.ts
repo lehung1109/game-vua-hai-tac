@@ -10,6 +10,14 @@ export class SelectCharacter extends Scene {
   }
 
   create() {
-    // this.scene.start("Loading");
+    const { width, height } = this.scale;
+
+    this.add
+      .text(width / 2, height / 2, "Select Character", {
+        fontSize: "32px",
+        color: "#fff",
+        align: "center",
+      })
+      .setOrigin(0.5, 0.5);
   }
 }
