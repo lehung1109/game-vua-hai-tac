@@ -20,7 +20,7 @@ export class SelectCharacter extends Scene {
 
   constructor() {
     super("SelectCharacter");
-    this.currentText = "";
+    this.currentText = "Name";
     this.caretPadding = 2;
   }
 
@@ -113,8 +113,8 @@ export class SelectCharacter extends Scene {
 
   createInteractiveForInput() {
     this.inputName?.setInteractive();
+    this.createInputTextIfNotExists();
     this.inputName?.on("pointerdown", () => {
-      this.createInputTextIfNotExists();
       this.createCaretIfNotExists();
       this.listenForInput();
       this.listenForBlur();
@@ -208,7 +208,7 @@ export class SelectCharacter extends Scene {
       this.inputText = this.add
         .text(this.inputName.x, this.inputName.y, this.currentText, {
           fontSize: "24px",
-          color: "#fff",
+          color: "#999", // color for placeholder
         })
         .setOrigin(0.5, 0.5);
       this.inputText.setInteractive();
@@ -216,6 +216,9 @@ export class SelectCharacter extends Scene {
         // trigger input name pointer down
         this.inputName?.emit("pointerdown", this.inputText);
       });
+    } else {
+      // set color to white
+      this.inputText.setColor("#fff");
     }
   }
 
