@@ -1,6 +1,16 @@
 import Link from "next/link";
+import { checkServerSideAuth } from "@/utils/auth";
+import { LoginPayload } from "@/app/api/auth/login/route";
 
-const Header = () => {
+const Header = async () => {
+  let me: LoginPayload | undefined | "";
+
+  try {
+    me = await checkServerSideAuth<LoginPayload>();
+  } catch (error) {
+    // do nothing
+  }
+
   return (
     <header className="flex justify-between items-center p-4 w-full bg-white">
       <div className="container mx-auto flex justify-between items-center">
@@ -15,18 +25,32 @@ const Header = () => {
 
         {/* right side include login and sign up button */}
         <div>
-          <Link
-            href="/login"
-            className="px-4 py-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/register"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-          >
-            Sign Up
-          </Link>
+          {!!me ? (
+            <>
+              <div className="text-md inline-block mr-2 ">Hi {me.email}</div>
+              <Link
+                href="/logout"
+                className="px-4 py-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              >
+                Logout
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

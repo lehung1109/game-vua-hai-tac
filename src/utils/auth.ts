@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify, JWTPayload } from "jose";
+import { cookies } from "next/headers";
 
 const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
 const issuer = process.env.JWT_ISSUER!;
@@ -20,4 +21,10 @@ export async function signJwt(
 export async function verifyJwt<T = JWTPayload>(token: string) {
   const { payload } = await jwtVerify(token, secretKey, { issuer, audience });
   return payload as T;
+}
+
+export async function checkServerSideAuth<T = JWTPayload>() {
+  const cookie = (await cookies()).get("token")?.value;
+  const payload = cookie && (await verifyJwt<T>(cookie));
+  return payload;
 }

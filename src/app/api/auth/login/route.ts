@@ -5,6 +5,7 @@ import { getUserByEmail } from "@/services/user/user.service";
 
 export type LoginInput = { email: string; password: string };
 export type LoginResponse = { message?: string };
+export type LoginPayload = { email: string; sub: string };
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
 
     // Sign JWT (only contains minimum information)
     const token = await signJwt(
-      { sub: String(user.id), email: user.email },
+      { sub: String(user.id), email: user.email } as LoginPayload,
       "1h"
     );
 
