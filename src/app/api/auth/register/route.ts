@@ -4,13 +4,19 @@ import { getUserByEmail } from "@/services/user/user.service";
 import { executeGraphQL } from "@/app/lib/graphql/gqlFetch";
 import { InsertUserDocument } from "@/__generated__/graphql";
 
+export type RegisterInput = {
+  email: string;
+  username: string;
+  password: string;
+};
+export type RegisterResponse = { message?: string; error?: string };
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, username, password } = body;
+    const { email, username, password } = (await req.json()) as RegisterInput;
 
     if (!email || !username || !password) {
-      return NextResponse.json(
+      return NextResponse.json<RegisterResponse>(
         { error: "Missing information" },
         { status: 400 }
       );
@@ -20,7 +26,7 @@ export async function POST(req: Request) {
     const user = await getUserByEmail(email);
 
     if (user) {
-      return NextResponse.json(
+      return NextResponse.json<RegisterResponse>(
         { error: "Email or username already exists" },
         { status: 400 }
       );
@@ -39,9 +45,15 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ message: "Registry success" }, { status: 201 });
+    return NextResponse.json<RegisterResponse>(
+      { message: "Registry success" },
+      { status: 201 }
+    );
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json<RegisterResponse>(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }

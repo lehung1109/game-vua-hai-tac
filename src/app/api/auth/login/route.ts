@@ -3,12 +3,15 @@ import bcrypt from "bcryptjs";
 import { signJwt } from "@/utils/auth";
 import { getUserByEmail } from "@/services/user/user.service";
 
+export type LoginInput = { email: string; password: string };
+export type LoginResponse = { message?: string };
+
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password } = (await req.json()) as LoginInput;
 
     if (!email || !password) {
-      return NextResponse.json(
+      return NextResponse.json<LoginResponse>(
         { message: "Missing email/password" },
         { status: 400 }
       );
@@ -16,7 +19,7 @@ export async function POST(req: Request) {
 
     const user = await getUserByEmail(email);
     if (!user) {
-      return NextResponse.json(
+      return NextResponse.json<LoginResponse>(
         { message: "Invalid email/password" },
         { status: 401 }
       );
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
 
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return NextResponse.json(
+      return NextResponse.json<LoginResponse>(
         { message: "Invalid email/password" },
         { status: 401 }
       );
@@ -37,7 +40,7 @@ export async function POST(req: Request) {
     );
 
     // Set cookie HttpOnly
-    const res = NextResponse.json({ message: "Login success" });
+    const res = NextResponse.json<LoginResponse>({ message: "Login success" });
     res.cookies.set({
       name: "token",
       value: token,
@@ -49,6 +52,9 @@ export async function POST(req: Request) {
     });
     return res;
   } catch (e) {
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json<LoginResponse>(
+      { message: "Server error" },
+      { status: 500 }
+    );
   }
 }
