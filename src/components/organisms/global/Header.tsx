@@ -26,15 +26,17 @@ const Header = async () => {
         {/* right side include login and sign up button */}
         <div>
           {!!me ? (
-            <>
+            <div className="flex items-center">
               <div className="text-md inline-block mr-2 ">Hi {me.email}</div>
-              <Link
-                href="/logout"
-                className="px-4 py-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              >
-                Logout
-              </Link>
-            </>
+              <form action="/api/auth/logout" method="post">
+                <button
+                  type="submit"
+                  className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
+                >
+                  Logout
+                </button>
+              </form>
+            </div>
           ) : (
             <>
               <Link
