@@ -1,0 +1,9 @@
+mutation InsertUser($object: users_insert_input!) {
+  insert_users_one(object: $object) {
+    createdAt
+    email
+    id
+    password_hash
+    username
+  }
+}
