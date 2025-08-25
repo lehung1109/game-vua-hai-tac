@@ -49,6 +49,7 @@ export default function LoginForm() {
 
       // login success => redirect to play page
       router.replace("/");
+      router.refresh(); // refresh the page to update the header
     } catch (err) {
       setError("An error occurred, please try again.");
     } finally {

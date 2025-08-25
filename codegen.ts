@@ -15,21 +15,7 @@ const config: CodegenConfig = {
   documents: ["src/**/*.graphql"],
   generates: {
     "src/__generated__/graphql.tsx": {
-      plugins: [
-        "typescript",
-        "typescript-operations",
-        "typescript-react-apollo",
-      ],
-      config: {
-        withHooks: true, // generate useQuery/useMutation hooks
-        reactApolloVersion: 3,
-        scalars: {
-          // map scalar if Hasura has custom
-          uuid: "string",
-          timestamptz: "string",
-          jsonb: "Record<string, any>",
-        },
-      },
+      plugins: ["typescript", "typescript-operations", "typed-document-node"],
     },
   },
   ignoreNoDocuments: true,

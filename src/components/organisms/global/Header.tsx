@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { checkServerSideAuth } from "@/utils/auth";
 import { LoginPayload } from "@/app/api/auth/login/route";
+import LogoutButton from "@/components/atoms/button/LogoutButton";
 
 const Header = async () => {
   let me: LoginPayload | undefined | "";
@@ -28,29 +29,22 @@ const Header = async () => {
           {!!me ? (
             <div className="flex items-center">
               <div className="text-md inline-block mr-2 ">Hi {me.email}</div>
-              <form action="/api/auth/logout" method="post">
-                <button
-                  type="submit"
-                  className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
-                >
-                  Logout
-                </button>
-              </form>
+              <LogoutButton />
             </div>
           ) : (
             <>
-              <Link
+              <a
                 href="/login"
                 className="px-4 py-2 mr-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
                 Sign In
-              </Link>
-              <Link
+              </a>
+              <a
                 href="/register"
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
               >
                 Sign Up
-              </Link>
+              </a>
             </>
           )}
         </div>
